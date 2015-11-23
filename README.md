@@ -59,4 +59,9 @@ run(url = "https://twitter.com/i/moments", nodeOfType = ".MomentCapsuleSummary")
 
 TODO
 =======
-A LOT?~?~
+Implementation of the following:
+class Storage # Backend for saving. Currently aiming towards Firebase, and files of type CSV, XML, HTML, and JSON.
+class Formats # Used by storage
+class Paginations # Decision tree for finding pagination dom elements or use actions to continue scraping.
+class Instructions # Maybe a cli ?
+class ImageStorages # Only aiming at Imgurl
