@@ -2,6 +2,36 @@ from selenium import webdriver
 import time
 import types
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+SCOPES = 'https://mail.google.com/'
+CLIENT_SECRET_FILE = 'client_secret.json'
+APPLICATION_NAME = 'Gmail API Quickstart'
+DEBUG_THIS = False
+
+def debug(function):
+	def activeDebug(*args, **kwargs):
+		print "\033[92mEntered into "+str(function.__name__)+"\033[0m"
+		exitValue = function(*args,**kwargs)
+		try:
+			print "\033[94mExit value of: "+str(function.__name__)+" is: "+str(exitValue)+" of type: "+str(type(exitValue))+"\033[0m"
+		except:
+			print "\033[91mThe result of "+function.__name__+" could not be parsed into a string"+"\033[0m"
+		return exitValue
+	if DEBUG_THIS:
+		return activeDebug
+	else:
+		return function
+
 class Formats:
 	Json = 'json'
 
