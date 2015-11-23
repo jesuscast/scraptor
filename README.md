@@ -57,7 +57,11 @@ run(url = "https://twitter.com/i/moments", nodeOfType = ".MomentCapsuleSummary")
 # {'imagesURL': u'https://pbs.twimg.com/tweet_video_thumb/CUf9-rSW4AA3DWC.png', 'title': u'Happy Doctor Who Day, Whovians'}
 ```
 
-| First Header  | Second Header |
-| ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+
+Class                    | Descrition
+------------------------ | ------------------------
+class Storage            | Backend for saving. Currently aiming towards Firebase, and files of type CSV, XML, HTML, and JSON.
+class Formats            | Used by storage
+class Paginations        | Decision tree for finding pagination dom elements or use actions to continue scraping.
+class Instructions       | Maybe a cli ?
+class ImageStorages      | Only aiming at Imgurl
