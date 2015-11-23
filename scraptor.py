@@ -88,7 +88,7 @@ class Spider:
 				for node in nodes:
 					result = {}
 					for field in self.fields:
-						fieldElements = self.waitUntilElementsAppear(field.selector)
+						fieldElements = self.waitUntilElementsAppear(field.selector, node)
 						result[ field.name ] = []
 						for element in fieldElements:
 							tempResult = field.callback(  element  )
@@ -96,7 +96,7 @@ class Spider:
 								result[ field.name ].append(tempResult)
 						if len(result[ field.name ]) == 1:
 							result[ field.name ] = result[ field.name ][0]
-						self.store(result, storage)
+					self.store(result, storage)
 			paginationPossible = self.paginate(pagination)
 			time.sleep(2)
 		self.driver.close()
