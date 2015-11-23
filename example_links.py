@@ -4,4 +4,4 @@ from scraptor import *
 def cleanLink(link):
 	return link.replace("http://","").replace(".com","")
 
-run(url = "https://twitter.com/")
+run(url = "http://localhost")
