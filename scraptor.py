@@ -104,11 +104,12 @@ class Spider:
 
 default_spider = Spider()
 
-def field(selector, name, attr = None):
+def field(selector, **kwargs):
+	assert "name" in kwargs, "Every field should have a name"
 	def wrapper(filterFunction):
-		default_spider.field(selector, name, filterFunction)
-		if attr != None:
-			default_spider.fields[-1].attribute = attr
+		default_spider.field(selector, kwargs["name"], filterFunction)
+		if "attr" in kwargs:
+			default_spider.fields[-1].attribute = kwargs["attr"]
 	return wrapper
 
 def run(*args, **kwargs):
