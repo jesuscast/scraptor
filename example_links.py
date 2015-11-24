@@ -7,6 +7,5 @@ def y(x):	return x
 def y(x):	return x
 
 
-storage = FireBaseConnection(url = "https://chattestttttsd.firebaseio.com/twitter/",
-							secret = "x4aQElxgPE1fJts1RE2BILJnfQ2zw11M5vu5cMFs")
+storage = FireBaseConnection(url = "https://chattestttttsd.firebaseio.com/twitter/", secret = "x4aQElxgPE1fJts1RE2BILJnfQ2zw11M5vu5cMFs")
 run(url = "https://twitter.com/i/moments", nodeOfType = ".MomentCapsuleSummary", storage = storage)
