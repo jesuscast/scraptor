@@ -1,6 +1,8 @@
 from selenium import webdriver
 import time
 import types
+import requests
+import json
 
 class bcolors:
     HEADER = '\033[95m'
@@ -32,11 +34,24 @@ def debug(function):
 	else:
 		return function
 
+class FireBaseConnection:
+	# FIREBASE_URL = "https://inncubator.firebaseio.com/"
+	def __init__(self, url, secret):
+		self.token = secret
+		self.ending = "?auth="+self.token
+		self.FIREBASE_URL = url
+	def to_url(self, stringT):
+		return self.FIREBASE_URL+stringT+"/.json"+self.ending
+	def post_data(self, data, node = ''):
+		result = requests.post(url = self.to_url(node), data=json.dumps(data))
+		return result
+
 class Formats:
 	Json = 'json'
 
 class Storages:
 	FireBase = 'fb'
+	StdOut = 'stdout'
 
 class ImageStorages:
 	Imgur = 'imgur'
@@ -52,6 +67,8 @@ def Instructions(errorType):
 		print "Usage: http://domain.com"
 	else:
 		print "Error not recognized"
+
+
 
 class Field:
 	def __init__(self, selector, name, callback):
@@ -83,7 +100,10 @@ class Spider:
 			return father
 		return father.find_element_by_css_selector(selector)
 	def store(self, data, storage):
-		print data
+		if storage == Storages.StdOut:
+			print data
+		else:
+			storage.post_data(data)
 	def paginate(self, type):
 		return False
 	def waitUntilElementsAppear(self, selector, father = None):
@@ -94,7 +114,15 @@ class Spider:
 	def field(self, selector, name, callback):
 		# Receives the selector, the name of the field and the callback after the information is retrieved
 		self.fields.append(  Field(selector, name, callback   ) )
-	def run(self, url = "", nodeOfType = "", format = Formats.Json, storage = Storages.FireBase, pagination = Paginations.ScrollDown, imageStorage = ImageStorages.Imgur):
+	def run(self, **kwargs):
+		# Set up attributes according to presence because I do not like setting them up according to position.
+		# What if you want to set an argument but you have to set a bunch to get to it ?
+		url = "" if "url" not in kwargs else kwargs["url"]
+		nodeOfType = "" if "nodeOfType" not in kwargs else kwargs["nodeOfType"]
+		format = Formats.Json if "format" not in kwargs else kwargs["format"]
+		storage = Storages.StdOut if "storage" not in kwargs else kwargs["storage"]
+		pagination = Paginations.ScrollDown if "pagination" not in kwargs else kwargs["pagination"]
+		imageStorage = ImageStorages.Imgur if "imageStorage" not in kwargs else kwargs["imageStorage"]
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
 		paginationPossible = True
