@@ -93,12 +93,8 @@ class Field:
 
 class Spider:
 	def __init__(self):
-		print "inside init function"
 		self.fields = []
-		self.driver = webdriver.Firefox()
-		self.driver.set_script_timeout(10)
-		self.driver.set_page_load_timeout(10)
-		self.driver.implicitly_wait(10)
+		self.driver = None
 	def waitUntilElementAppears(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
@@ -131,6 +127,10 @@ class Spider:
 		login = None if "login" not in kwargs else kwargs["login"]
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
+		self.driver = webdriver.Firefox()
+		self.driver.set_script_timeout(10)
+		self.driver.set_page_load_timeout(10)
+		self.driver.implicitly_wait(10)
 		self.driver.get("https://twitter.com/")
 		inputElements = self.driver.find_elements_by_css_selector("input")
 		if login != None:
