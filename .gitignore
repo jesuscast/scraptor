@@ -1,3 +1,4 @@
 thoughts.txt
 env/
 *.pyc
+secret/
