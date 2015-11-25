@@ -3,7 +3,9 @@ import time
 import types
 import requests
 import json
-
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+import selenium.webdriver.support.ui as ui
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -68,7 +70,10 @@ def Instructions(errorType):
 	else:
 		print "Error not recognized"
 
-
+class Login:
+	def __init__(self, username, password):
+		self.username = username
+		self.password = password
 
 class Field:
 	def __init__(self, selector, name, callback):
@@ -123,8 +128,21 @@ class Spider:
 		storage = Storages.StdOut if "storage" not in kwargs else kwargs["storage"]
 		pagination = Paginations.ScrollDown if "pagination" not in kwargs else kwargs["pagination"]
 		imageStorage = ImageStorages.Imgur if "imageStorage" not in kwargs else kwargs["imageStorage"]
+		login = None if "login" not in kwargs else kwargs["login"]
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
+		self.driver.get("https://twitter.com/")
+		inputElements = self.driver.find_elements_by_css_selector("input")
+		if login != None:
+			for i in range(len(inputElements)):
+				if inputElements[i].get_attribute('type') == 'password' and i != 0:
+					try:
+						inputElements[i].send_keys(login.password)
+						inputElements[i-1].send_keys(login.username)
+						inputElements[i].submit()
+						break
+					except:
+						continue
 		paginationPossible = True
 		while paginationPossible:
 			self.driver.get(url)
