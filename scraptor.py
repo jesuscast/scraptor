@@ -131,7 +131,7 @@ class Spider:
 		self.driver.set_script_timeout(10)
 		self.driver.set_page_load_timeout(10)
 		self.driver.implicitly_wait(10)
-		self.driver.get("https://twitter.com/")
+		self.driver.get(url)
 		inputElements = self.driver.find_elements_by_css_selector("input")
 		if login != None:
 			for i in range(len(inputElements)):

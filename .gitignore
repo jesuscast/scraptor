@@ -2,3 +2,6 @@ thoughts.txt
 env/
 *.pyc
 secret/
+build/
+dist/
+scraptor.egg-info/
