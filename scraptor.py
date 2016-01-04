@@ -1,11 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+import selenium.webdriver.support.ui as ui
 import time
 import types
 import requests
 import json
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-import selenium.webdriver.support.ui as ui
+
+__author__ = "jesus.cast.sosa@gmail.com"
+__version__ = "0.2.2"
+__license__ = "MIT"
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -106,6 +115,8 @@ class Spider:
 		else:
 			storage.post_data(data)
 	def paginate(self, type):
+		if type == Paginations.ScrollDown:
+			self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 		return False
 	def waitUntilElementsAppear(self, selector, father = None):
 		father = self.driver if father == None else father
