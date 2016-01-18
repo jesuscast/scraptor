@@ -1,35 +1,48 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 import selenium.webdriver.support.ui as ui
-import time
-import types
+from selenium import webdriver
 import requests
+import types
+import time
 import json
 
+
+# -----------------------------
+# |                            |
+# |  Global Variables          |
+# |                            |
+# -----------------------------
 __author__ = "jesus.cast.sosa@gmail.com"
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 __license__ = "MIT"
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 
 SCOPES = 'https://mail.google.com/'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Gmail API Quickstart'
 DEBUG_THIS = False
+
+# -----------------------------
+# |                            |
+# |  Utilities                 |
+# |                            |
+# -----------------------------
+
+class bcolors:
+	HEADER = '\033[95m'
+	OKBLUE = '\033[94m'
+	OKGREEN = '\033[92m'
+	WARNING = '\033[93m'
+	FAIL = '\033[91m'
+	ENDC = '\033[0m'
+	BOLD = '\033[1m'
+	UNDERLINE = '\033[4m'
 
 def debug(function):
 	def activeDebug(*args, **kwargs):
@@ -45,8 +58,13 @@ def debug(function):
 	else:
 		return function
 
+# -----------------------------
+# |                            |
+# |  Connection Class          |
+# |                            |
+# -----------------------------
+
 class FireBaseConnection:
-	# FIREBASE_URL = "https://inncubator.firebaseio.com/"
 	def __init__(self, url, secret):
 		self.token = secret
 		self.ending = "?auth="+self.token
@@ -54,31 +72,66 @@ class FireBaseConnection:
 	def to_url(self, stringT):
 		return self.FIREBASE_URL+stringT+"/.json"+self.ending
 	def post_data(self, data, node = ''):
-		result = requests.post(url = self.to_url(node), data=json.dumps(data))
+		result = None
+		if node == '':
+			result = requests.post(url = self.to_url(''), data=json.dumps(data))
+		else:
+			newElement = {}
+			newElement[str(node)] = data
+			result = requests.patch(url = self.to_url(''), data=json.dumps(newElement))
 		return result
 
-class Formats:
-	Json = 'json'
-
-class Storages:
-	FireBase = 'fb'
-	StdOut = 'stdout'
-
-class ImageStorages:
-	Imgur = 'imgur'
-
-class Paginations:
-	ScrollDown = 'ScrollDown'
+# -----------------------------
+# |                            |
+# |  Error Classes             |
+# |                            |
+# -----------------------------
 
 class ParsingErrors:
-	Url = "url"
-	AttributeNotPresent = 'AttributeNotPresent'
+	Url = "url"+'-'*5
+	AttributeNotPresent = 'AttributeNotPresent'+'-'*5
+
+class RunningErrors:
+	LimitFound = 'LimitFound'+'-'*5
+
+class ConnectionErrors:
+	NoConnection = 'NoConnection'+'-'*5
+
 def Instructions(errorType):
+	""" Parsrs the correspondent error message for 'instructions' when calling the run function """
 	if errorType == ParsingErrors.Url:
 		print "Usage: http://domain.com"
 	else:
 		print "Error not recognized"
 
+# -----------------------------
+# |                            |
+# |  Arguments for run         |
+# |  function                  |
+# |                            |
+# -----------------------------
+class Formats:
+	Json = 'json'+'-'*5
+
+class Storages:
+	FireBase = 'fb'+'-'*5
+	StdOut = 'stdout'+'-'*5
+
+class ImageStorages:
+	Imgur = 'imgur'+'-'*5
+
+class Paginations:
+	ScrollDown = 'ScrollDown'+'-'*5
+
+
+
+
+# -----------------------------
+# |                            |
+# |  Holder classes for        |
+# |  information in the spider |
+# |                            |
+# -----------------------------
 class Login:
 	def __init__(self, username, password):
 		self.username = username
@@ -100,29 +153,65 @@ class Field:
 		else:
 			return self.callback_temp(element.text)
 
+# -----------------------------
+# |                            |
+# | Main Spider Class          |
+# |                            |
+# -----------------------------
 class Spider:
 	def __init__(self):
 		self.fields = []
 		self.driver = None
+		self.html_tags = ["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "menu", "menuitem", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"]
 	def waitUntilElementAppears(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
 			return father
-		return father.find_element_by_css_selector(selector)
-	def store(self, data, storage):
-		if storage == Storages.StdOut:
-			print data
+		elif (selector[0] == '.' and './/' not in selector) or selector[0] == '#' or selector in self.html_tags:
+			try:
+				element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+				return element
+			except:
+				return False
 		else:
-			storage.post_data(data)
-	def paginate(self, type):
-		if type == Paginations.ScrollDown:
-			self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-		return False
+			try:
+				element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, selector)))
+				return element
+			except:
+				return False
 	def waitUntilElementsAppear(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
 			return [father]
-		return father.find_elements_by_css_selector(selector)
+		elif (selector[0] == '.' and './/' not in selector) or selector[0] == '#' or selector in self.html_tags:
+			try:
+				element = WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector)))
+				return element
+			except:
+				return False
+		else:
+			try:
+				element = WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.XPATH, selector)))
+				return element
+			except:
+				return False
+	def store(self, data, storage, node = None):
+		if storage == Storages.StdOut:
+			print data
+		else:
+			if node != None:
+				storage.post_data(data, node)
+			else:
+				storage.post_data(data)
+	def paginate(self, type):
+		try:
+			if type == Paginations.ScrollDown:
+				self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+				return True
+			else:
+				return False
+		except:
+			return False
 	def field(self, selector, name, callback):
 		# Receives the selector, the name of the field and the callback after the information is retrieved
 		self.fields.append(  Field(selector, name, callback   ) )
@@ -155,8 +244,10 @@ class Spider:
 					except:
 						continue
 		paginationPossible = True
+		quitAll = False
+		skipLength = 0
+		self.driver.get(url)
 		while paginationPossible:
-			self.driver.get(url)
 			nodes = None
 			if nodeOfType == "":
 				# The node is not a css selctor
@@ -171,25 +262,56 @@ class Spider:
 					self.store(result, storage)
 			else:
 				# The node is an actual css selctor
+				currentIndex = 0
+				skipLengthLocal = skipLength
 				nodes = self.waitUntilElementsAppear(nodeOfType)
+				skipLength = len(nodes)
 				for node in nodes:
+					if currentIndex < skipLengthLocal:
+						print currentIndex
+						currentIndex += 1
 					result = {}
+					nodeTitle = None
 					for field in self.fields:
 						fieldElements = self.waitUntilElementsAppear(field.selector, node)
 						result[ field.name ] = []
 						for element in fieldElements:
-							tempResult = field.callback(  element  )
-							if tempResult != ParsingErrors.AttributeNotPresent:
+							tempTempResult = field.callback(  element  )
+							tempResult = None
+							if type(tempTempResult) == types.TupleType:
+								tempResult = tempTempResult[0]
+								nodeTitle = str(tempTempResult[1])
+							else:
+								tempResult = tempTempResult
+							if tempResult == RunningErrors.LimitFound:
+								quitAll = True
+								break
+							elif tempResult != ParsingErrors.AttributeNotPresent:
 								result[ field.name ].append(tempResult)
+						if quitAll:
+							break
 						if len(result[ field.name ]) == 1:
 							result[ field.name ] = result[ field.name ][0]
-					self.store(result, storage)
+					if quitAll:
+						break
+					self.store(result, storage, nodeTitle)
+				if quitAll:
+					break
+			if quitAll:
+				break
 			paginationPossible = self.paginate(pagination)
 			time.sleep(2)
 		self.driver.close()
 
 
 default_spider = Spider()
+
+# -----------------------------
+# |                            |
+# |  Decorators that act upon  |
+# |  the default_spider        |
+# |                            |
+# -----------------------------
 
 def field(selector, **kwargs):
 	assert "name" in kwargs, "Every field should have a name"
