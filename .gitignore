@@ -5,3 +5,4 @@ secret/
 build/
 dist/
 scraptor.egg-info/
+*.txt
