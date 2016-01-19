@@ -172,33 +172,17 @@ class Spider:
 		if selector == "":
 			return father
 		elif (selector[0] == '.' and './/' not in selector) or selector[0] == '#' or selector in self.html_tags:
-			try:
-				element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-				return element
-			except:
-				return False
+			return father.find_element_by_css_selector(selector)
 		else:
-			try:
-				element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, selector)))
-				return element
-			except:
-				return False
+			return father.find_element_by_xpath(selector)
 	def waitUntilElementsAppear(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
 			return [father]
 		elif (selector[0] == '.' and './/' not in selector) or selector[0] == '#' or selector in self.html_tags:
-			try:
-				element = WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector)))
-				return element
-			except:
-				return False
+			return father.find_elements_by_css_selector(selector)
 		else:
-			try:
-				element = WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.XPATH, selector)))
-				return element
-			except:
-				return False
+			return father.find_elements_by_xpath(selector)
 	def store(self, data, storage, node = None):
 		if storage == Storages.StdOut:
 			print data
@@ -220,6 +204,7 @@ class Spider:
 		# Receives the selector, the name of the field and the callback after the information is retrieved
 		self.fields.append(  Field(selector, name, callback   ) )
 	def login(self, loginAttr):
+		inputElements = self.driver.find_elements_by_css_selector("input")
 		if loginAttr != None:
 			for i in range(len(inputElements)):
 				if inputElements[i].get_attribute('type') == 'password' and i != 0:
@@ -246,7 +231,6 @@ class Spider:
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
 		self.driver.get(url)
-		inputElements = self.driver.find_elements_by_css_selector("input")
 		self.login(loginAttr)
 		paginationPossible = True
 		quitAll = False

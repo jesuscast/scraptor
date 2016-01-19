@@ -20,7 +20,7 @@ def clean(link):
 ```
 In case the attr is ommitted, the field returns the text value of the element
 ```python
-@field('p', name='paragraph'):
+@field('p', name='paragraph')
 def censor(text):
 	replacement_dictionary = [ ("fuck", "great"), ("shit","nice") ]
 	for word in replacement_dictionary:
