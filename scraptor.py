@@ -28,9 +28,6 @@ __author__ = "jesus.cast.sosa@gmail.com"
 __version__ = "0.4.0"
 __license__ = "MIT"
 
-SCOPES = 'https://mail.google.com/'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Gmail API Quickstart'
 DEBUG_THIS = False
 
 # -----------------------------
@@ -81,6 +78,9 @@ def print_optional(type_of_print):
 		return print_normal
 	else:
 		return print_with_flush
+
+output_deamonizer = 'stdout'
+print_text = print_optional(output_deamonizer)
 
 # -----------------------------
 # |                            |
@@ -344,9 +344,12 @@ def run_spider(*args, **kwargs):
 
 
 
-output_deamonizer = 'stdout'
-print_text = print_optional(output_deamonizer)
-
+# -----------------------------
+# |                            |
+# |  Deamonizer class for the  |
+# |   deamonize deocrator      |
+# |                            |
+# -----------------------------
 class Deamonizer:
 	def __init__(self):
 		self.main_functionality = {"function":None,"args":None,"kwargs":None}
@@ -380,10 +383,9 @@ class Deamonizer:
 			start_color = bcolors.FAIL
 		else:
 			end_color = ''
-		colored_text = start_color + text + end_color
 		if len(description) > 30:
 			description = description[:27]+'...'
-		return '{0!s:20} {1!s:30} {2}'.format(priority, description, colored_text)
+		return '{4}{0!s:30} {1!s:20} {2!s:30} {3}{5}'.format(time.ctime(time.time()), priority, description, text, start_color, end_color)
 	def parse_command_line(self):
 		output_deamonizer = 'stdout'
 		self.print_text = print_optional(output_deamonizer)
@@ -398,7 +400,7 @@ class Deamonizer:
 				fileTmpName = os.path.basename(__file__)
 				filenameRun = 'run_'+fileTmpName.replace('.py','')+'.sh'
 				result_string = ''
-				result_string += 'cd '+os.path.dirname(os.path.abspath(fileTmpName))+' && '+sys.executable+' '+fileTmpName+' '+fileTmpName.replace('.py','')+'.txt nonvisible 2>&1'
+				result_string += 'cd '+os.path.dirname(os.path.abspath(fileTmpName))+' && '+sys.executable+' '+fileTmpName+' '+fileTmpName.replace('.py','')+'.log nonvisible 2>&1'
 				f = open(filenameRun, 'w')
 				f.write(result_string)
 				f.close()
@@ -464,7 +466,7 @@ default_deamon = Deamonizer()
 # -----------------------------
 # |                            |
 # |  Decorators that act upon  |
-# |  the deamon                |
+# |  default deamon instance   |
 # |                            |
 # -----------------------------
 
