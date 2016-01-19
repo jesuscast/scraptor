@@ -8,7 +8,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import selenium.webdriver.support.ui as ui
-from pyvirtualdisplay import Display
 from selenium import webdriver
 from datetime import datetime
 import requests
@@ -425,6 +424,7 @@ class Deamonizer:
 			self.visibility = sys.argv[2] == 'visible'
 		sys.stderr = sys.stdout
 		if not self.visibility:
+			from pyvirtualdisplay import Display
 			self.display = Display(visible = 0, size=(1024, 768))
 			self.display.start()
 			self.print_text(self.format_log('debug','message','Using virtual display.'))
