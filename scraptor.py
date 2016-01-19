@@ -20,7 +20,7 @@ import json
 # |                            |
 # -----------------------------
 __author__ = "jesus.cast.sosa@gmail.com"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __license__ = "MIT"
 
 SCOPES = 'https://mail.google.com/'
@@ -163,6 +163,10 @@ class Spider:
 		self.fields = []
 		self.driver = None
 		self.html_tags = ["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "menu", "menuitem", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"]
+		self.driver = webdriver.Firefox()
+		self.driver.set_script_timeout(10)
+		self.driver.set_page_load_timeout(10)
+		self.driver.implicitly_wait(10)
 	def waitUntilElementAppears(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
@@ -215,34 +219,35 @@ class Spider:
 	def field(self, selector, name, callback):
 		# Receives the selector, the name of the field and the callback after the information is retrieved
 		self.fields.append(  Field(selector, name, callback   ) )
+	def login(self, loginAttr):
+		if loginAttr != None:
+			for i in range(len(inputElements)):
+				if inputElements[i].get_attribute('type') == 'password' and i != 0:
+					try:
+						inputElements[i].send_keys(loginAttr.password)
+						inputElements[i-1].send_keys(loginAttr.username)
+						inputElements[i].submit()
+						break
+					except:
+						continue
+		return True
+	def end(self):
+		self.driver.close()
 	def run(self, **kwargs):
 		# Set up attributes according to presence because I do not like setting them up according to position.
 		# What if you want to set an argument but you have to set a bunch to get to it ?
 		url = "" if "url" not in kwargs else kwargs["url"]
 		nodeOfType = "" if "nodeOfType" not in kwargs else kwargs["nodeOfType"]
-		format = Formats.Json if "format" not in kwargs else kwargs["format"]
+		formatAttr = Formats.Json if "format" not in kwargs else kwargs["format"]
 		storage = Storages.StdOut if "storage" not in kwargs else kwargs["storage"]
 		pagination = Paginations.ScrollDown if "pagination" not in kwargs else kwargs["pagination"]
 		imageStorage = ImageStorages.Imgur if "imageStorage" not in kwargs else kwargs["imageStorage"]
-		login = None if "login" not in kwargs else kwargs["login"]
+		loginAttr = None if "login" not in kwargs else kwargs["login"]
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
-		self.driver = webdriver.Firefox()
-		self.driver.set_script_timeout(10)
-		self.driver.set_page_load_timeout(10)
-		self.driver.implicitly_wait(10)
 		self.driver.get(url)
 		inputElements = self.driver.find_elements_by_css_selector("input")
-		if login != None:
-			for i in range(len(inputElements)):
-				if inputElements[i].get_attribute('type') == 'password' and i != 0:
-					try:
-						inputElements[i].send_keys(login.password)
-						inputElements[i-1].send_keys(login.username)
-						inputElements[i].submit()
-						break
-					except:
-						continue
+		self.login(loginAttr)
 		paginationPossible = True
 		quitAll = False
 		skipLength = 0
@@ -268,8 +273,9 @@ class Spider:
 				skipLength = len(nodes)
 				for node in nodes:
 					if currentIndex < skipLengthLocal:
-						print currentIndex
 						currentIndex += 1
+						continue
+					currentIndex += 1
 					result = {}
 					nodeTitle = None
 					for field in self.fields:
@@ -301,7 +307,6 @@ class Spider:
 				break
 			paginationPossible = self.paginate(pagination)
 			time.sleep(2)
-		self.driver.close()
 
 
 default_spider = Spider()
