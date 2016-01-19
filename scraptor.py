@@ -18,22 +18,22 @@ import sys
 import os
 
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Global Variables          |
 # |                            |
-# -----------------------------
+# ------------------------------
 __author__ = "jesus.cast.sosa@gmail.com"
 __version__ = "0.5.0"
 __license__ = "MIT"
 
 DEBUG_THIS = False
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Utilities                 |
 # |                            |
-# -----------------------------
+# ------------------------------
 
 class bcolors:
 	HEADER = '\033[95m'
@@ -64,8 +64,7 @@ def connected_to_internet(url='http://www.google.com/', timeout=5):
 		_ = requests.get(url, timeout=timeout)
 		return True
 	except Exception as e:
-		print("No internet connection available.")
-	return False
+		return False
 
 def print_optional(type_of_print):
 	def print_normal(text):
@@ -81,11 +80,11 @@ def print_optional(type_of_print):
 output_deamonizer = 'stdout'
 print_text = print_optional(output_deamonizer)
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Connection Class          |
 # |                            |
-# -----------------------------
+# ------------------------------
 
 class FireBaseConnection:
 	def __init__(self, url, secret):
@@ -104,11 +103,11 @@ class FireBaseConnection:
 			result = requests.patch(url = self.to_url(''), data=json.dumps(newElement))
 		return result
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Error Classes             |
 # |                            |
-# -----------------------------
+# ------------------------------
 
 class ParsingErrors:
 	Url = "url"+'-'*5
@@ -127,12 +126,12 @@ def Instructions(errorType):
 	else:
 		print "Error not recognized"
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Arguments for run         |
 # |  function                  |
 # |                            |
-# -----------------------------
+# ------------------------------
 class Formats:
 	Json = 'json'+'-'*5
 
@@ -149,12 +148,12 @@ class Paginations:
 
 
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Holder classes for        |
 # |  information in the spider |
 # |                            |
-# -----------------------------
+# ------------------------------
 class Login:
 	def __init__(self, username, password):
 		self.username = username
@@ -176,11 +175,11 @@ class Field:
 		else:
 			return self.callback_temp(element.text)
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # | Main Spider Class          |
 # |                            |
-# -----------------------------
+# ------------------------------
 class Spider:
 	def __init__(self):
 		self.fields = []
@@ -323,12 +322,12 @@ class Spider:
 
 default_spider = Spider()
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Decorators that act upon  |
 # |  the default_spider        |
 # |                            |
-# -----------------------------
+# ------------------------------
 
 def field(selector, **kwargs):
 	assert "name" in kwargs, "Every field should have a name"
@@ -343,12 +342,12 @@ def run_spider(*args, **kwargs):
 
 
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Deamonizer class for the  |
 # |   deamonize deocrator      |
 # |                            |
-# -----------------------------
+# ------------------------------
 class Deamonizer:
 	def __init__(self):
 		self.main_functionality = {"function":None,"args":None,"kwargs":None}
@@ -358,16 +357,16 @@ class Deamonizer:
 		self.display = None
 	def format_log(self, priority, description, text):
 		"""
-		DEBUG - for genuinely debug-level info; will not be seen in production or shipped product, as INFO will be the minimum level; good for capturing timings, number of occurrences of events, etc
+			DEBUG - for genuinely debug-level info; will not be seen in production or shipped product, as INFO will be the minimum level; good for capturing timings, number of occurrences of events, etc
 
-		INFO - minimum level for production/shipped usage; record data likely to be useful in forensic investigations and to confirm successful outcomes ("stored 999 items in DB OK"); all info here must be such that you would be OK with end users/customers seeing it and sending you it, if need be (no secrets, no profanity!)
+			INFO - minimum level for production/shipped usage; record data likely to be useful in forensic investigations and to confirm successful outcomes ("stored 999 items in DB OK"); all info here must be such that you would be OK with end users/customers seeing it and sending you it, if need be (no secrets, no profanity!)
 
-		WARN - not an error level as such, but useful to know the system may be entering dodgy territory, e.g. business logic stuff like "number of ordered products < 0" which suggests a bug somewhere, but isn't a system exception; I tend not to use it that much to be honest, finding things tend to be more natural fits to INFO or ERROR
+			WARN - not an error level as such, but useful to know the system may be entering dodgy territory, e.g. business logic stuff like "number of ordered products < 0" which suggests a bug somewhere, but isn't a system exception; I tend not to use it that much to be honest, finding things tend to be more natural fits to INFO or ERROR
 
-		ERROR - use this for exceptions (unless there's a good reason to reduce to WARN or INFO); log full stacktraces along with important variable values without which diagnosis is impossible; use only for app/system errors, not bad business logic circumstances
+			ERROR - use this for exceptions (unless there's a good reason to reduce to WARN or INFO); log full stacktraces along with important variable values without which diagnosis is impossible; use only for app/system errors, not bad business logic circumstances
 
-		FATAL - only use this for an error of such high severity that it literally prevents the app from starting / continuing
-		(http://stackoverflow.com/questions/7486596/commons-logging-priority-best-practices) Retrieved 1453177472
+			FATAL - only use this for an error of such high severity that it literally prevents the app from starting / continuing
+			(http://stackoverflow.com/questions/7486596/commons-logging-priority-best-practices) Retrieved 1453177472
 		"""
 		start_color = ''
 		end_color = bcolors.ENDC
@@ -463,12 +462,12 @@ class Deamonizer:
 
 default_deamon = Deamonizer()
 
-# -----------------------------
+# ------------------------------
 # |                            |
 # |  Decorators that act upon  |
 # |  default deamon instance   |
 # |                            |
-# -----------------------------
+# ------------------------------
 
 def deamonize(*args, **kwargs):
 	def wrapper(filterFunction):
