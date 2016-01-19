@@ -3,15 +3,20 @@
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import selenium.webdriver.support.ui as ui
+from pyvirtualdisplay import Display
 from selenium import webdriver
+from datetime import datetime
 import requests
 import types
 import time
 import json
+import sys
+import os
 
 
 # -----------------------------
@@ -20,7 +25,7 @@ import json
 # |                            |
 # -----------------------------
 __author__ = "jesus.cast.sosa@gmail.com"
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 __license__ = "MIT"
 
 SCOPES = 'https://mail.google.com/'
@@ -57,6 +62,25 @@ def debug(function):
 		return activeDebug
 	else:
 		return function
+
+def connected_to_internet(url='http://www.google.com/', timeout=5):
+	try:
+		_ = requests.get(url, timeout=timeout)
+		return True
+	except Exception as e:
+		print("No internet connection available.")
+	return False
+
+def print_optional(type_of_print):
+	def print_normal(text):
+		print text
+	def print_with_flush(text):
+		print text
+		sys.stdout.flush()
+	if type_of_print == 'stdout':
+		return print_normal
+	else:
+		return print_with_flush
 
 # -----------------------------
 # |                            |
@@ -163,10 +187,13 @@ class Spider:
 		self.fields = []
 		self.driver = None
 		self.html_tags = ["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "menu", "menuitem", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"]
-		self.driver = webdriver.Firefox()
-		self.driver.set_script_timeout(10)
-		self.driver.set_page_load_timeout(10)
-		self.driver.implicitly_wait(10)
+		self.driver = None
+	def generate_driver(self):
+		tempDriver = webdriver.Firefox()
+		tempDriver.set_script_timeout(10)
+		tempDriver.set_page_load_timeout(10)
+		tempDriver.implicitly_wait(10)
+		return tempDriver
 	def waitUntilElementAppears(self, selector, father = None):
 		father = self.driver if father == None else father
 		if selector == "":
@@ -230,6 +257,8 @@ class Spider:
 		loginAttr = None if "login" not in kwargs else kwargs["login"]
 		# Check the parameters conform to my specifications
 		assert url != "", Instructions(ParsingErrors.Url)
+		if self.driver == None:
+			self.driver = self.generate_driver()
 		self.driver.get(url)
 		self.login(loginAttr)
 		paginationPossible = True
@@ -310,5 +339,115 @@ def field(selector, **kwargs):
 			default_spider.fields[-1].attribute = kwargs["attr"]
 	return wrapper
 
-def run(*args, **kwargs):
+def run_spider(*args, **kwargs):
 	default_spider.run(*args , **kwargs)
+
+
+
+output_deamonizer = 'stdout'
+print_text = print_optional(output_deamonizer)
+
+class Deamonizer:
+	def __init__(self):
+		self.main_functionality = {"function":None,"args":None,"kwargs":None}
+		self.pre_functionality = {"function":None,"args":None,"kwargs":None}
+		self.print_text = None
+		self.visibility = False
+		self.display = None
+	def parse_command_line(self):
+		output_deamonizer = 'stdout'
+		self.print_text = print_optional(output_deamonizer)
+		# ------------------------------------------------------------------------------
+		# |      Routines for parsing the command line                                 |
+		# |                                                                            |
+		# |   Usage: python name_of_file.py [stdout|file_name] [visible|nonvisible]    |
+		# ------------------------------------------------------------------------------
+		if len(sys.argv) == 2:
+			if sys.argv[1] == 'compile':
+				# Saving of the run file
+				fileTmpName = os.path.basename(__file__)
+				filenameRun = 'run_'+fileTmpName.replace('.py','')+'.sh'
+				result_string = ''
+				result_string += 'cd '+os.path.dirname(os.path.abspath(fileTmpName))+' && '+sys.executable+' '+fileTmpName+' '+fileTmpName.replace('.py','')+'.txt nonvisible 2>&1'
+				f = open(filenameRun, 'w')
+				f.write(result_string)
+				f.close()
+				# Saving of the crontab script
+				filename = 'crontab_'+fileTmpName.replace('.py','')+'.txt'
+				result_string = ''
+				result_string += '30 7 * * * sh '+os.path.dirname(os.path.abspath(fileTmpName))+'/'+filenameRun
+				print result_string
+				f = open(filename, 'w')
+				f.write(result_string)
+				f.close()
+				sys.exit()
+			else:
+				sys.stdout = open(sys.argv[1], 'a')
+				output_deamonizer = 'file'
+				self.print_text = print_optional(output_deamonizer)
+		elif len(sys.argv) == 3:
+			if sys.argv[1] != 'stdout':
+				sys.stdout = open(sys.argv[1], 'a')
+				output_deamonizer = 'file'
+				self.print_text = print_optional(output_deamonizer)
+			self.visibility = sys.argv[2] == 'visible'
+		sys.stderr = sys.stdout
+		if not self.visibility:
+			self.display = Display(visible = 0, size=(1024, 768))
+			self.display.start()
+			self.print_text( "should not be visible")
+		else:
+			self.print_text("SHOULD BE VISIBLE")
+	def run(self):
+		self.parse_command_line()
+		# Try to set up a counter for exceptions.
+		exceptionsTimeouts = 0
+		# Run Pre
+		if self.pre_functionality["function"] != None:
+			self.pre_functionality["function"](*self.pre_functionality["args"], **self.pre_functionality["kwargs"])
+		while True:
+			self.print_text('Inside the loop')
+			# Scape the fate of no internet
+			self.print_text(bcolors.WARNING+"EXECUTION TIME: "+str(datetime.now())+bcolors.ENDC)
+			while not connected_to_internet():
+				self.print_text("Not connected to the internet. Going to sleep for five minutes")
+				time.sleep(60*5)
+			self.print_text('About to start the try except')
+			try:
+				if self.main_functionality["function"] != None:
+					self.main_functionality["function"](*self.main_functionality["args"], **self.main_functionality["kwargs"])
+			except TimeoutException as e:
+				self.print_text(bcolors.FAIL+'Timeout exception of selenium. Trying again.'+bcolors.ENDC)
+				exceptionsTimeouts += 1
+				# if exceptionsTimeouts % 6 == 0:
+				# 	os.system("python send_text.py \"Error in quickbooks Too many timeouts. "+str(e)+"\"")
+			except Exception as e:
+				self.print_text(bcolors.FAIL+"Error in quickbooks: "+str(e)+bcolors.ENDC)
+				#os.system("python send_text.py \"Error in quickbooks. "+str(e)+"\"")
+			self.print_text('Going to sleep for five minutes')
+			time.sleep(60*5)
+		if not self.visibility:
+			self.display.stop()
+
+
+default_deamon = Deamonizer()
+
+# -----------------------------
+# |                            |
+# |  Decorators that act upon  |
+# |  the deamon                |
+# |                            |
+# -----------------------------
+
+def deamonize(*args, **kwargs):
+	def wrapper(filterFunction):
+		default_deamon.main_functionality =  { "function": filterFunction,"args":args,"kwargs":kwargs}
+	return wrapper
+
+def pre_deamon(*args, **kwargs):
+	def wrapper(filterFunction):
+		default_deamon.pre_functionality =  { "function": filterFunction,"args":args,"kwargs":kwargs}
+	return wrapper
+
+def run_deamon():
+	default_deamon.run()
