@@ -354,6 +354,36 @@ class Deamonizer:
 		self.print_text = None
 		self.visibility = False
 		self.display = None
+	def format_log(self, priority, description, text):
+		"""
+		DEBUG - for genuinely debug-level info; will not be seen in production or shipped product, as INFO will be the minimum level; good for capturing timings, number of occurrences of events, etc
+
+		INFO - minimum level for production/shipped usage; record data likely to be useful in forensic investigations and to confirm successful outcomes ("stored 999 items in DB OK"); all info here must be such that you would be OK with end users/customers seeing it and sending you it, if need be (no secrets, no profanity!)
+
+		WARN - not an error level as such, but useful to know the system may be entering dodgy territory, e.g. business logic stuff like "number of ordered products < 0" which suggests a bug somewhere, but isn't a system exception; I tend not to use it that much to be honest, finding things tend to be more natural fits to INFO or ERROR
+
+		ERROR - use this for exceptions (unless there's a good reason to reduce to WARN or INFO); log full stacktraces along with important variable values without which diagnosis is impossible; use only for app/system errors, not bad business logic circumstances
+
+		FATAL - only use this for an error of such high severity that it literally prevents the app from starting / continuing
+		(http://stackoverflow.com/questions/7486596/commons-logging-priority-best-practices) Retrieved 1453177472
+		"""
+		start_color = ''
+		end_color = bcolors.ENDC
+		priotity = priority.lower()
+		if 'info' in priority:
+			start_color = bcolors.OKBLUE
+		elif 'warn' in priority:
+			start_color = bcolors.WARNINGA
+		elif 'error' in priority:
+			start_color = bcolors.FAIL
+		elif 'fatal' in priority:
+			start_color = bcolors.FAIL
+		else:
+			end_color = ''
+		colored_text = start_color + text + end_color
+		if len(description) > 30:
+			description = description[:27]+'...'
+		return '{0!s:20} {1!s:30} {2}'.format(priority, description, colored_text)
 	def parse_command_line(self):
 		output_deamonizer = 'stdout'
 		self.print_text = print_optional(output_deamonizer)
@@ -395,9 +425,9 @@ class Deamonizer:
 		if not self.visibility:
 			self.display = Display(visible = 0, size=(1024, 768))
 			self.display.start()
-			self.print_text( "should not be visible")
+			self.print_text(self.format_log('debug','message','Using virtual display.'))
 		else:
-			self.print_text("SHOULD BE VISIBLE")
+			self.print_text(self.format_log('debug','message','Not using virtual display.'))
 	def run(self):
 		self.parse_command_line()
 		# Try to set up a counter for exceptions.
@@ -406,25 +436,24 @@ class Deamonizer:
 		if self.pre_functionality["function"] != None:
 			self.pre_functionality["function"](*self.pre_functionality["args"], **self.pre_functionality["kwargs"])
 		while True:
-			self.print_text('Inside the loop')
+			self.print_text(self.format_log('debug','message','Inside the infinite loop.'))
 			# Scape the fate of no internet
-			self.print_text(bcolors.WARNING+"EXECUTION TIME: "+str(datetime.now())+bcolors.ENDC)
+			self.print_text(self.format_log('info','current time', str(datetime.now())))
 			while not connected_to_internet():
-				self.print_text("Not connected to the internet. Going to sleep for five minutes")
+				self.print_text(self.format_log('warning','connection error','Not connected to the internet. Going to sleep for five minutes'))
 				time.sleep(60*5)
-			self.print_text('About to start the try except')
+			self.print_text(self.format_log('debug','message','About to start the try except'))
 			try:
 				if self.main_functionality["function"] != None:
 					self.main_functionality["function"](*self.main_functionality["args"], **self.main_functionality["kwargs"])
 			except TimeoutException as e:
-				self.print_text(bcolors.FAIL+'Timeout exception of selenium. Trying again.'+bcolors.ENDC)
+				self.print_text(self.format_log('error','exception','Timeout exception of selenium. Trying again.'))
 				exceptionsTimeouts += 1
 				# if exceptionsTimeouts % 6 == 0:
 				# 	os.system("python send_text.py \"Error in quickbooks Too many timeouts. "+str(e)+"\"")
 			except Exception as e:
-				self.print_text(bcolors.FAIL+"Error in quickbooks: "+str(e)+bcolors.ENDC)
-				#os.system("python send_text.py \"Error in quickbooks. "+str(e)+"\"")
-			self.print_text('Going to sleep for five minutes')
+				self.print_text(self.format_log('fatal','exception','Unrecognized exception.'))
+			self.print_text(self.format_log('debug','message','Going to sleep for five minutes'))
 			time.sleep(60*5)
 		if not self.visibility:
 			self.display.stop()
