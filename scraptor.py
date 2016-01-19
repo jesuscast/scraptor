@@ -24,7 +24,7 @@ import os
 # |                            |
 # -----------------------------
 __author__ = "jesus.cast.sosa@gmail.com"
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __license__ = "MIT"
 
 DEBUG_THIS = False
