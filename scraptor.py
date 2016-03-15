@@ -374,7 +374,7 @@ class Deamonizer:
 		if 'info' in priority:
 			start_color = bcolors.OKBLUE
 		elif 'warn' in priority:
-			start_color = bcolors.WARNINGA
+			start_color = bcolors.WARNING
 		elif 'error' in priority:
 			start_color = bcolors.FAIL
 		elif 'fatal' in priority:
